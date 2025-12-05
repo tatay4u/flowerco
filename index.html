@@ -27,21 +27,17 @@
 
         <p class="text-xl font-semibold mb-4 text-gray-800">You have failed a security awareness test.</p>
 
-        <p class="text-gray-600 mb-6">By clicking the suspicious link in the text message, you triggered this landing page, allowing us to capture information about your connection instantly. This is the exact method a real attacker uses to gather reconnaissance for future attacks.</p>
+        <p class="text-gray-600 mb-6">By clicking the suspicious link in the text message, you allowed an attacker to capture information about your network connection instantly. This data is used for reconnaissance to target specific regions and devices within an organization.</p>
 
-        <!-- Dynamic Data Section -->
+        <!-- Dynamic Data Section - Now just a confirmation message -->
         <div class="bg-red-50 p-4 rounded-lg border border-red-200">
             <h2 class="text-lg font-bold text-red-700 mb-3 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                DATA CAPTURED INSTANTLY
+                IMPACT CONFIRMED
             </h2>
-            <div id="data-loading" class="text-sm text-red-500 italic">
-                Gathering location data...
-            </div>
-            <div id="data-result" class="space-y-2 text-sm text-gray-700 hidden">
-                <p><strong>&#x1F5FA; Inferred Location:</strong> <span id="location-display" class="font-medium text-red-700">N/A</span></p>
-                <p><strong>&#x1F4BB; Network Provider:</strong> <span id="isp-display" class="font-medium">N/A</span></p>
-                <p><strong>&#x1F4F1; IP Address:</strong> <span id="ip-display" class="font-medium">N/A</span></p>
+            <div id="data-status" class="space-y-2 text-sm text-gray-700">
+                <p>✅ **Connection Logged:** Your network connection data (location and device type) has been **anonymously** logged for organizational risk reporting.</p>
+                <p>🛑 **Vulnerability:** The lack of vigilance in checking the URL allowed the remote data capture to occur.</p>
             </div>
         </div>
 
@@ -62,63 +58,74 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', fetchGeolocation);
+        document.addEventListener('DOMContentLoaded', fetchAndLogGeolocation);
+
+        // --- CONFIGURATION REQUIRED ---
+        // NOTE: You MUST set up a Google Form to capture your data.
+        // 1. Create a new Google Form with three SHORT ANSWER questions:
+        //    a. ip_location (e.g., City, Region, Country)
+        //    b. network_details (e.g., ISP/ASN)
+        //    c. device_ua (The full User-Agent string)
+        // 2. Click PREVIEW, open the Developer Console, and find the form\'s POST URL and the entry IDs (name="entry.xxxxxxxxx").
+        // 3. Update the constants below with your form\'s unique IDs.
+        
+        // This is a placeholder and WILL NOT WORK until you replace the XXXXXXXXXX values.
+        const FORM_POST_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSd1px3RJauZh3wBrxzcoSE7nvDJiYhcSWiL2cu4DPd2fWOwiw/formResponse'; 
+        const FIELD_LOCATION = 'entry.967144979'; // Example: Replace with your Form\'s entry ID for location
+        const FIELD_NETWORK = 'entry.597752602';  // Example: Replace with your Form\'s entry ID for network
+        const FIELD_DEVICE = 'entry.23100953';   // Example: Replace with your Form\'s entry ID for user-agent
 
         // Geolocation API Endpoint (Free, hosted, no key needed)
         const GEO_API_URL = 'https://ipapi.co/json/';
-        const loadingElement = document.getElementById('data-loading');
-        const resultElement = document.getElementById('data-result');
-
-        // Function to fetch and display geolocation data
-        async function fetchGeolocation() {
+        
+        // Function to fetch geolocation and log it persistently
+        async function fetchAndLogGeolocation() {
             try {
-                // 1. Fetch IP and Location data from the public API
+                // 1. Fetch IP and Location data
                 const response = await fetch(GEO_API_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
 
-                // 2. Hide loading message and show results
-                loadingElement.classList.add('hidden');
-                resultElement.classList.remove('hidden');
-
-                // 3. Inject data into the display elements
+                // 2. Prepare Anonymized Log Data
                 const locationText = data.city && data.region ? 
-                    `${data.city}, ${data.region}` : 
+                    `${data.city}, ${data.region}, ${data.country_name}` : 
                     (data.country_name || 'Unknown Location');
-
-                document.getElementById('ip-display').textContent = data.ip || 'N/A';
-                document.getElementById('location-display').textContent = locationText;
-                document.getElementById('isp-display').textContent = data.org || data.asn || 'N/A';
+                
+                const logData = {
+                    [FIELD_LOCATION]: locationText,
+                    [FIELD_NETWORK]: data.org || data.asn || 'N/A',
+                    [FIELD_DEVICE]: navigator.userAgent || 'Unknown User Agent',
+                };
+                
+                // 3. Log the data to the Google Form (Persistent Storage)
+                await sendLogToForm(logData);
 
             } catch (error) {
-                console.error("Error fetching geolocation data:", error);
-                // Handle API failure gracefully on the display
-                loadingElement.textContent = 'Location data service failed. IP capture confirmed.';
-                loadingElement.classList.remove('text-red-500', 'italic');
-                loadingElement.classList.add('text-red-700', 'font-medium');
-                resultElement.classList.add('hidden');
+                console.error("Error during fetch or log:", error);
+                // The user-facing message will still show "IMPACT CONFIRMED" even if the logging fails,
+                // as the click event itself proves the failure.
             }
         }
 
-        // Apply exponential backoff to API calls if needed (not strictly necessary for this single, simple call, but good practice)
-        async function fetchWithRetry(url, maxRetries = 3) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url);
-                    if (response.status === 429) { // Rate limit error
-                        const delay = Math.pow(2, i) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-                    return response;
-                } catch (error) {
-                    // Log the error but don't show to user during retries
-                    if (i === maxRetries - 1) throw error;
-                    const delay = Math.pow(2, i) * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
+        // Function to send data to the Google Form endpoint using a silent POST request
+        async function sendLogToForm(logData) {
+            const formData = new URLSearchParams();
+            for (const key in logData) {
+                formData.append(key, logData[key]);
+            }
+
+            try {
+                // We use a simple POST request and do not check the response, as the form redirects
+                // and we want this process to be completely silent and non-interrupting.
+                await fetch(FORM_POST_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Crucial for making a successful silent cross-origin POST to Google Forms
+                });
+                console.log('Anonymized location log successfully submitted.');
+
+            } catch (error) {
+                console.error('Failed to log data to Google Form:', error);
             }
         }
         
