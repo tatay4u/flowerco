@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Simulation Failure</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Simulation Alert Card -->
+    <div id="alert-card" class="w-full max-w-lg bg-white p-8 md:p-10 rounded-xl shadow-2xl border-t-8 border-red-600 transition-all duration-300 transform scale-100">
+        <div class="flex items-center space-x-4 mb-6">
+            <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h1 class="text-3xl font-extrabold text-red-700">SIMULATION FAILED</h1>
+        </div>
+
+        <p class="text-xl font-semibold mb-4 text-gray-800">You have failed a security awareness test.</p>
+
+        <p class="text-gray-600 mb-6">By clicking the suspicious link in the text message, you triggered this landing page, allowing us to capture information about your connection instantly. This is the exact method a real attacker uses to gather reconnaissance for future attacks.</p>
+
+        <!-- Dynamic Data Section -->
+        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+            <h2 class="text-lg font-bold text-red-700 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                DATA CAPTURED INSTANTLY
+            </h2>
+            <div id="data-loading" class="text-sm text-red-500 italic">
+                Gathering location data...
+            </div>
+            <div id="data-result" class="space-y-2 text-sm text-gray-700 hidden">
+                <p><strong>&#x1F5FA; Inferred Location:</strong> <span id="location-display" class="font-medium text-red-700">N/A</span></p>
+                <p><strong>&#x1F4BB; Network Provider:</strong> <span id="isp-display" class="font-medium">N/A</span></p>
+                <p><strong>&#x1F4F1; IP Address:</strong> <span id="ip-display" class="font-medium">N/A</span></p>
+            </div>
+        </div>
+
+        <!-- Training Call to Action -->
+        <div class="mt-8 pt-4 border-t border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Your Next Step: Training</h3>
+            <p class="text-sm text-gray-600 mb-4">You missed the following red flags in the text message:
+                <ul class="list-disc list-inside ml-2 mt-2 space-y-1 text-sm text-gray-600">
+                    <li>The sender was an unknown or non-official 10-digit number.</li>
+                    <li>The URL used a non-standard short domain or had no branding.</li>
+                    <li>The message created a false sense of **urgency** ("lockout," "pay fee now").</li>
+                </ul>
+            </p>
+            <button onclick="window.location.href='https://www.google.com/search?q=cybersecurity+phishing+awareness+training';" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Proceed to Awareness Training Portal
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchGeolocation);
+
+        // Geolocation API Endpoint (Free, hosted, no key needed)
+        const GEO_API_URL = 'https://ipapi.co/json/';
+        const loadingElement = document.getElementById('data-loading');
+        const resultElement = document.getElementById('data-result');
+
+        // Function to fetch and display geolocation data
+        async function fetchGeolocation() {
+            try {
+                // 1. Fetch IP and Location data from the public API
+                const response = await fetch(GEO_API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // 2. Hide loading message and show results
+                loadingElement.classList.add('hidden');
+                resultElement.classList.remove('hidden');
+
+                // 3. Inject data into the display elements
+                const locationText = data.city && data.region ? 
+                    `${data.city}, ${data.region}` : 
+                    (data.country_name || 'Unknown Location');
+
+                document.getElementById('ip-display').textContent = data.ip || 'N/A';
+                document.getElementById('location-display').textContent = locationText;
+                document.getElementById('isp-display').textContent = data.org || data.asn || 'N/A';
+
+            } catch (error) {
+                console.error("Error fetching geolocation data:", error);
+                // Handle API failure gracefully on the display
+                loadingElement.textContent = 'Location data service failed. IP capture confirmed.';
+                loadingElement.classList.remove('text-red-500', 'italic');
+                loadingElement.classList.add('text-red-700', 'font-medium');
+                resultElement.classList.add('hidden');
+            }
+        }
+
+        // Apply exponential backoff to API calls if needed (not strictly necessary for this single, simple call, but good practice)
+        async function fetchWithRetry(url, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (response.status === 429) { // Rate limit error
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    return response;
+                } catch (error) {
+                    // Log the error but don't show to user during retries
+                    if (i === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+    </script>
+</body>
+</html>
